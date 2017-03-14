@@ -45,7 +45,6 @@ class CreateTableAlibabaAspPayment extends Migration
             $table->string('ASP_AlipayPayTime',16)->nullable();
             $table->decimal('ASP_ExchangeRate',7,7)->nullable();
             $table->decimal('ASP_TransAmtCny',9,2)->nullable();
-            $table->timestamps();
         });
     }
 

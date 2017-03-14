@@ -38,6 +38,6 @@ class Payment extends Model
       'ASP_AlipaySellerID',
       'ASP_MCCID'
     ];
-
+    public $timestamps = false;
     protected $table = 'tblAlibaba_ASP_Payment';
 }
