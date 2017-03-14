@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use DB;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Client;
+use GuzzleHttp\Psr7\Request as GuzzleRequest;
 
 class SenderController extends Controller
 {
@@ -42,7 +43,7 @@ class SenderController extends Controller
 
         }
         // push some data to array
-        array_push($arrValues,"_input_charset=".$request->_input_charset,'trans_create_time='.$transcreatetime,'extend_info='.$json);
+        array_push($arrValues,'trans_create_time='.$transcreatetime,'extend_info='.$json);
         // sort array by value ascending
         asort($arrValues);
         // implode the array to become string and using delimiter of '&'
@@ -54,7 +55,7 @@ class SenderController extends Controller
         array_push($arrValues, 'sign='.$sign, 'sign_type='.$signtype);
 
         $client = new Client();
-        $result = $client->post('http://localhost/laravel/public/api/request', [
+        $promise = $client->postAsync('http://dev17.revpay.com.my:8000/api/request',[
             'headers' => [
               'Content-Type' => 'application/json',
               'Accept' => 'application/json',
@@ -81,11 +82,54 @@ class SenderController extends Controller
             ]
         ]);
 
-        if($result->getStatusCode() == 201)
-        {
-          return redirect()->action('RequestController@request');
-        } else {
-          echo var_dump($result->getBody());
-        }
+        $promise->then(function($response){
+          if($response->getStatusCode() == 201)
+          {
+              return redirect()->action("SenderController@sendAlipayRequest");
+          } else {
+              echo $response->getStatusCode();
+          }
+
+        });
+
+        $promise->wait();
+        // $result = $client->post('http://dev17.revpay.com.my:8000/api/request', [
+        //     'headers' => [
+        //       'Content-Type' => 'application/json',
+        //       'Accept' => 'application/json',
+        //     ],
+        //     'json' => [
+        //       "trx_type" => $request->trx_type,
+        //       "_input_charset" => $request->_input_charset,
+        //       "config_id" => $configid,
+        //       "service" => $request->service,
+        //       "partner" => $request->partner,
+        //       "alipay_seller_id" => $request->alipay_seller_id,
+        //       "partner_trans_id" => $request->partner_trans_id,
+        //       "currency" => $request->currency,
+        //       "trans_amt" => $request->trans_amt,
+        //       "trans_name" => $request->trans_name,
+        //       "buyer_identity_code" => $request->buyer_identity_code,
+        //       "identity_code_type" => $request->identity_code_type,
+        //       "memo" => $request->memo,
+        //       "secondary_merchant_industry" => $request->secondary_merchant_industry,
+        //       "biz_product" => $request->biz_product,
+        //       "trans_create_time" => $transcreatetime,
+        //       "sign" => $sign,
+        //       "sign_type" => $signtype
+        //     ]
+        // ]);
+
+        // if($result->getStatusCode() == 201)
+        // {
+        //   return redirect()->action('RequestController@request');
+        // } else {
+        //   echo var_dump($result->getBody());
+        // }
+    }
+
+    public function sendAlipayRequest()
+    {
+      echo 'asdada';
     }
 }
