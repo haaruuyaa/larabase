@@ -20,4 +20,3 @@ use Illuminate\Http\Request;
 Route::get('request','RequestController@request');
 Route::post('request','RequestController@saveData');
 Route::post('send','SenderController@sendPay');
-Route::post('sendalipay', 'SenderController@sendAlipayRequest');
