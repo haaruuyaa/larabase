@@ -22,10 +22,8 @@ class SenderController extends Controller
         $configid = $request->config_id;
         $configData =  DB::table('tblAlibaba_ASP')
                         ->select(
-                          'tblAlibaba_ASP_MID as merchant_id','tblAlibaba_ASP_MerchantName as merchant_name',
                           'tblAlibaba_ASP_SecondMerchantID as secondary_merchant_id','tblAlibaba_ASP_SecondMerchantName as secondary_merchant_name',
-                          'tblAlibaba_ASP_TerminalID as terminal_id','tblAlibaba_ASP_RefundMID as refund_id',
-                          'tblAlibaba_ASP_MCC_Code as secondary_merchant_industry')
+                          'tblAlibaba_ASP_TerminalID as terminal_id','tblAlibaba_ASP_MCC_Code as secondary_merchant_industry')
                         ->where('tblAlibaba_ASP_ID','=',$configid)
                         ->first();
         // convert to json string
@@ -35,7 +33,7 @@ class SenderController extends Controller
         // construct pre-signed string
         foreach($request->json() as $index => $value)
         {
-            if($index == 'secondary_merchant_industry' OR $index == 'config_id')
+            if($index == 'secondary_merchant_industry' OR $index == 'config_id' OR $index == 'trx_type')
             {
               unset($index);
             } else {
@@ -46,17 +44,21 @@ class SenderController extends Controller
         // push some data to array
         array_push($arrValues,'trans_create_time='.$transcreatetime,'extend_info='.$json);
         // sort array by value ascending
-        asort($arrValues);
+        sort($arrValues);
         // implode the array to become string and using delimiter of '&'
+        // $imploded = 'sign=aaczziabnm9w3sr23wu2zhevd7u8n1hx&';
         $imploded = implode($arrValues,'&');
+        // $imploded .= '&sign=aaczziabnm9w3sr23wu2zhevd7u8n1hx';
         // sign the pre-signed string
         $sign = md5($imploded);
+        // $sign = 'aaczziabnm9w3sr23wu2zhevd7u8n1hx';
         $signtype = 'MD5';
 
         array_push($arrValues, 'sign='.$sign, 'sign_type='.$signtype);
 
         $client = new Client();
         $promise = $client->post('http://dev17.revpay.com.my:8000/api/request',[
+            'timeout' => '15',
             'headers' => [
               'Content-Type' => 'application/json',
               'Accept' => 'application/json',
@@ -82,10 +84,14 @@ class SenderController extends Controller
               "sign_type" => $signtype
             ]
         ]);
-
+        
         $urlreq = implode($arrValues,'&');
-
-        $req = new GuzzleRequest('GET','https://intlmapi.alipay.com/gateway.do?'.$urlreq,[
+        // production
+        // $req = new GuzzleRequest('GET','https://intlmapi.alipay.com/gateway.do?'.$urlreq,[
+        //   'headers' => ['Accept' => 'application/xml', 'Content-Type' => 'text/xml']
+        // ]);
+        // testing
+        $req = new GuzzleRequest('POST','https://openapi.alipaydev.com/gateway.do?'.$urlreq,[
           'headers' => ['Accept' => 'application/xml', 'Content-Type' => 'text/xml']
         ]);
         $promise1 = $client->sendAsync($req);
@@ -95,5 +101,6 @@ class SenderController extends Controller
         $promise1->wait();
         // $aliResponse = simplexml_load_file('https://intlmapi.alipay.com/gateway.do?'.$urlreq);
         // echo var_dump($aliResponse);
+
     }
 }
