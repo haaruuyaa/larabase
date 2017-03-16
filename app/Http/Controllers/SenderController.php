@@ -33,7 +33,7 @@ class SenderController extends Controller
         // construct pre-signed string
         foreach($request->json() as $index => $value)
         {
-            if($index == 'secondary_merchant_industry' OR $index == 'config_id' OR $index == 'trx_type')
+            if($index == 'secondary_merchant_industry' OR $index == 'config_id')
             {
               unset($index);
             } else {
@@ -42,7 +42,8 @@ class SenderController extends Controller
 
         }
         // push some data to array
-        array_push($arrValues,'trans_create_time='.$transcreatetime,'extend_info='.$json);
+        array_push($arrValues,'trans_create_time='.$transcreatetime);
+        // array_push($arrValues,'trans_create_time='.$transcreatetime,'extend_info='.$json);
         // sort array by value ascending
         sort($arrValues);
         // implode the array to become string and using delimiter of '&'
@@ -50,21 +51,20 @@ class SenderController extends Controller
         $imploded = implode($arrValues,'&');
         // $imploded .= '&sign=aaczziabnm9w3sr23wu2zhevd7u8n1hx';
         // sign the pre-signed string
-        $sign = md5($imploded);
-        // $sign = 'aaczziabnm9w3sr23wu2zhevd7u8n1hx';
+        $key = 'aaczziabnm9w3sr23wu2zhevd7u8n1hx';
+        $sign = md5($imploded.$key);
         $signtype = 'MD5';
 
         array_push($arrValues, 'sign='.$sign, 'sign_type='.$signtype);
 
         $client = new Client();
-        $promise = $client->post('http://dev17.revpay.com.my:8000/api/request',[
-            'timeout' => '15',
+        $promise = $client->postAsync('http://localhost/laravel/public/api/request',[
+            'timeout' => '5',
             'headers' => [
               'Content-Type' => 'application/json',
               'Accept' => 'application/json',
             ],
             'json' => [
-              "trx_type" => $request->trx_type,
               "_input_charset" => $request->_input_charset,
               "config_id" => $configid,
               "service" => $request->service,
@@ -72,7 +72,7 @@ class SenderController extends Controller
               "alipay_seller_id" => $request->alipay_seller_id,
               "partner_trans_id" => $request->partner_trans_id,
               "currency" => $request->currency,
-              "trans_amt" => $request->trans_amt,
+              "trans_amount" => $request->trans_amount,
               "trans_name" => $request->trans_name,
               "buyer_identity_code" => $request->buyer_identity_code,
               "identity_code_type" => $request->identity_code_type,
@@ -83,24 +83,71 @@ class SenderController extends Controller
               "sign" => $sign,
               "sign_type" => $signtype
             ]
-        ]);
-        
-        $urlreq = implode($arrValues,'&');
-        // production
-        // $req = new GuzzleRequest('GET','https://intlmapi.alipay.com/gateway.do?'.$urlreq,[
-        //   'headers' => ['Accept' => 'application/xml', 'Content-Type' => 'text/xml']
-        // ]);
-        // testing
-        $req = new GuzzleRequest('POST','https://openapi.alipaydev.com/gateway.do?'.$urlreq,[
-          'headers' => ['Accept' => 'application/xml', 'Content-Type' => 'text/xml']
-        ]);
-        $promise1 = $client->sendAsync($req);
-        $promise1->then(function($response){
-            echo $response->getBody();
+        ])->then(function($response) use ($arrValues,$client,$configid){
+            $urlreq = implode($arrValues,'&');
+            $req = new GuzzleRequest('POST','https://openapi.alipaydev.com/gateway.do?'.$urlreq,[
+              'connect_timeout' => '5',
+              'timeout' => '5',
+              'headers' => ['Accept' => 'application/xml', 'Content-Type' => 'text/xml']
+            ]);
+            $promise1 = $client->sendAsync($req);
+            $promise1->then(function($response) use ($client,$configid){
+                // $xml = simplexml_load_string($response->getBody());
+                // $responseData = $xml->response->alipay;
+                // $requestData = $xml->request;
+
+                echo $response->getBody()->getContents();
+                // $resp = new GuzzleRequest('POST','http://localhost/laravel/public/api/response',[
+                //   'timeout' => 15,
+                //   'headers' => ['Accept' => 'application/json', 'Content-Type' => 'application/json'],
+                //   'json' => [
+                //       "_input_charset" => $requestData->_input_charset,
+                //       "config_id" => $configid,
+                //       "service" => $requestData->service,
+                //       "partner" => $requestData->partner,
+                //       "alipay_seller_id" => $requestData->alipay_seller_id,
+                //       "partner_trans_id" => $requestData->partner_trans_id,
+                //       "currency" => $requestData->currency,
+                //       "trans_amount" => $requestData->trans_amount,
+                //       "trans_name" => $requestData->trans_name,
+                //       "buyer_identity_code" => $requestData->buyer_identity_code,
+                //       "identity_code_type" => $requestData->identity_code_type,
+                //       "memo" => $requestData->memo,
+                //       "secondary_merchant_industry" => $requestData->secondary_merchant_industry,
+                //       "biz_product" => $requestData->biz_product,
+                //       "trans_create_time" => $requestData->trans_create_time,
+                //       "sign" => $xml->sign,
+                //       "sign_type" => $xml->sign_type,
+                //       "is_success" => $xml->is_success,
+                //       "result_code" => $xml->result_code,
+                //       "error" => (isset($xml->error)) ? $xml->error : '',
+                //       "alipay_buyer_login_id" => $responseData->alipay_buyer_login_id,
+                //       "alipay_buyer_user_id" => $responseData->alipay_buyer_user_id,
+                //       "alipay_trans_id" => $responseData->alipay_trans_id,
+                //       "alipay_pay_time" => $responseData->alipay_pay_time,
+                //       "exchange_rate" => $responseData->exchange_rate,
+                //       "trans_amount_cny" => $responseData->trans_amount_cny
+                //   ]
+                // ]);
+                // $promise2 = $client->send($resp);
+                //
+                // if($promise2->getStatusCode() == 200)
+                // {
+                //   echo "done!!";
+                // }
+
+                // production
+                // $req = new GuzzleRequest('GET','https://intlmapi.alipay.com/gateway.do?'.$urlreq,[
+                //   'headers' => ['Accept' => 'application/xml', 'Content-Type' => 'text/xml']
+                // ]);
+                // $aliResponse = simplexml_load_file('https://intlmapi.alipay.com/gateway.do?'.$urlreq);
+            });
+
+            $promise1->wait();
+
         });
-        $promise1->wait();
-        // $aliResponse = simplexml_load_file('https://intlmapi.alipay.com/gateway.do?'.$urlreq);
-        // echo var_dump($aliResponse);
+
+        $promise->wait();
 
     }
 }
