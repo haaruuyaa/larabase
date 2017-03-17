@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Payment;
 use App\Transformers\PaymentTransformer;
+use GuzzleHttp\Client;
+use GuzzleHttp\Psr7\Request as GuzzleRequest;
 
 class RequestController extends Controller
 {
@@ -23,7 +25,7 @@ class RequestController extends Controller
     }
 
 
-    public function saveData(Request $request, Payment $payment)
+    public function sendRequest(Request $request, Payment $payment)
     {
 
           $this->validate($request,[
@@ -64,7 +66,7 @@ class RequestController extends Controller
             'ASP_BizProduct' => $request->biz_product
           ]);
 
-          return redirect()->action('RequestController@request');
+          return response()->json('completed',201);
     }
 
     public function saveResponse(Request $request, Payment $payment)
@@ -124,7 +126,185 @@ class RequestController extends Controller
             'ASP_TransAmtCny' => $request->trans_amount_cny
           ]);
 
-          return redirect()->action('RequestController@request');
+          return response()->json('completed',201);
     }
 
+    public function sendQuery(Request $request)
+    {
+        $this->validate($request,[
+          'partner' => 'required',
+          'service' => 'required',
+          'partner_trans_id' => 'required'
+        ]);
+
+        $arrValues = [];
+        // construct pre-signed string
+        foreach($request->json() as $index => $value)
+        {
+          array_push($arrValues,$index."=".$value);
+        }
+        // sort array by value ascending
+        sort($arrValues);
+        // implode the array to become string and using delimiter of '&'
+        $imploded = implode($arrValues,'&');
+        $key = 'aaczziabnm9w3sr23wu2zhevd7u8n1hx';
+        $sign = md5($imploded.$key);
+        $signtype = 'MD5';
+
+        // push sign and signtype to array
+        array_push($arrValues, 'sign='.$sign, 'sign_type='.$signtype);
+
+        //implode final signed string
+        $urlreq = implode($arrValues,'&');
+
+        $client = new Client();
+        $req = new GuzzleRequest('POST','https://openapi.alipaydev.com/gateway.do?'.$urlreq,[
+          'connect_timeout' => '5',
+          'timeout' => '5',
+          'headers' => ['Accept' => 'application/xml', 'Content-Type' => 'text/xml']
+        ]);
+
+        $promise = $client->send($req);
+
+        // $xml = simplexml_load_string($promise1->getBody()->getContents());
+        // $json = json_encode($xml);
+        // $array = json_decode($json,TRUE);
+
+        return $promise->getBody()->getContents();
+    }
+
+    public function sendRefund(Request $request)
+    {
+      $this->validate($request,[
+        'partner' => 'required',
+        'service' => 'required',
+        'partner_trans_id' => 'required'
+      ]);
+
+      $arrValues = [];
+
+      // convert object type to array
+      foreach($request->json() as $index => $value)
+      {
+        array_push($arrValues,$index.'='.$value);
+      }
+
+      // sort the array value ascending order
+      sort($arrValues);
+
+      // key from alipay
+      $key = 'aaczziabnm9w3sr23wu2zhevd7u8n1hx';
+
+      // implode Array
+      $implode = implode($arrValues,'&');
+
+      // sign pre-signed string
+      $sign = md5($implode.$key);
+      $signtype = 'MD5';
+
+      array_push($arrValues, 'sign='.$sign, 'sign_type='.$signtype);
+      // return response()->json('Can!', 200);
+
+      $urlreq = implode($arrValues,'&');
+
+      $client = new Client();
+      $req = new GuzzleRequest('POST','https://openapi.alipaydev.com/gateway.do?'.$urlreq,[
+        'connect_timeout' => '5',
+        'timeout' => '5',
+        'headers' => ['Accept' => 'application/xml', 'Content-Type' => 'text/xml']
+      ]);
+
+      $promise = $client->send($req);
+      return $promise->getBody()->getContents();
+    }
+
+    public function sendCancel(Request $request)
+    {
+      $this->validate($request,[
+        'partner' => 'required',
+        'service' => 'required',
+        'partner_trans_id' => 'required'
+      ]);
+
+      $arrValues = [];
+
+      // convert object type to array
+      foreach($request->json() as $index => $value)
+      {
+        array_push($arrValues,$index.'='.$value);
+      }
+
+      // sort the array value ascending order
+      sort($arrValues);
+
+      // key from alipay
+      $key = 'aaczziabnm9w3sr23wu2zhevd7u8n1hx';
+
+      // implode Array
+      $implode = implode($arrValues,'&');
+
+      // sign pre-signed string
+      $sign = md5($implode.$key);
+      $signtype = 'MD5';
+
+      array_push($arrValues, 'sign='.$sign, 'sign_type='.$signtype);
+      // return response()->json('Can!', 200);
+
+      $urlreq = implode($arrValues,'&');
+
+      $client = new Client();
+      $req = new GuzzleRequest('POST','https://openapi.alipaydev.com/gateway.do?'.$urlreq,[
+        'connect_timeout' => '5',
+        'timeout' => '5',
+        'headers' => ['Accept' => 'application/xml', 'Content-Type' => 'text/xml']
+      ]);
+
+      $promise = $client->send($req);
+      return $promise->getBody()->getContents();
+    }
+
+    public function sendReverse(Request $request)
+    {
+      $this->validate($request,[
+        'partner' => 'required',
+        'service' => 'required',
+        'partner_trans_id' => 'required'
+      ]);
+
+      $arrValues = [];
+
+      // convert object type to array
+      foreach($request->json() as $index => $value)
+      {
+        array_push($arrValues,$index.'='.$value);
+      }
+
+      // sort the array value ascending order
+      sort($arrValues);
+
+      // key from alipay
+      $key = 'aaczziabnm9w3sr23wu2zhevd7u8n1hx';
+
+      // implode Array
+      $implode = implode($arrValues,'&');
+
+      // sign pre-signed string
+      $sign = md5($implode.$key);
+      $signtype = 'MD5';
+
+      array_push($arrValues, 'sign='.$sign, 'sign_type='.$signtype);
+      // return response()->json('Can!', 200);
+
+      $urlreq = implode($arrValues,'&');
+
+      $client = new Client();
+      $req = new GuzzleRequest('POST','https://openapi.alipaydev.com/gateway.do?'.$urlreq,[
+        'connect_timeout' => '5',
+        'timeout' => '5',
+        'headers' => ['Accept' => 'application/xml', 'Content-Type' => 'text/xml']
+      ]);
+
+      $promise = $client->send($req);
+      return $promise->getBody()->getContents();
+    }
 }
