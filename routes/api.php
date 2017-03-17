@@ -17,7 +17,7 @@ use Illuminate\Http\Request;
 Route::post('request','RequestController@sendRequest');
 Route::post('response','RequestController@saveResponse');
 Route::post('query','RequestController@sendQuery');
-Route::post('send','SenderController@sendPay');
+Route::post('payment','SenderController@sendPay');
 Route::post('refund','RequestController@sendRefund');
 Route::post('cancel','RequestController@sendCancel');
 Route::post('reverse','RequestController@sendReverse');
