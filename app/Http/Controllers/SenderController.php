@@ -7,7 +7,6 @@ use DB;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request as GuzzleRequest;
-use GuzzleHttp\Psr7\Stream;
 
 class SenderController extends Controller
 {
@@ -88,68 +87,86 @@ class SenderController extends Controller
               'timeout' => '5',
               'headers' => ['Accept' => 'application/xml', 'Content-Type' => 'text/xml']
             ]);
-            $promise1 = $client->send($req);
+            $promise1 = $client->sendAsync($req)->then(function($response) use ($request,$client,$configid,$transcreatetime){
+                if($response->getStatusCode() == 200)
+                {
+                    $xml = simplexml_load_string($response->getBody()->getContents());
+                    $json = json_encode($xml);
+                    $array = json_decode($json,TRUE);
 
-            $xml = simplexml_load_string($promise1->getBody()->getContents());
-            $json = json_encode($xml);
-            $array = json_decode($json,TRUE);
+                    $responseData = $array['response']['alipay'];
+                    $requestData = $array['request'];
 
-            $responseData = $array['response']['alipay'];
-            $requestData = $array['request'];
+                    $xmlsign = $array['sign'];
+                    $xmlsigntype =  $array['sign_type'];
+                    $resultcode = $responseData['result_code'];
+                    $xmlsuccess = $array['is_success'];
 
-            $xmlsign = $array['sign'];
-            $xmlsigntype =  $array['sign_type'];
-            $resultcode = $responseData['result_code'];
-            $xmlsuccess = $array['is_success'];
+                    $promise2 = $client->post('http://localhost/laravel/public/api/response',
+                      [
+                        'timeout' => '5',
+                        'headers' => [
+                          'Content-Type' => 'application/json',
+                          'Accept' => 'application/json',
+                        ],
+                        'json' => [
+                            "_input_charset" => $request->_input_charset,
+                            "config_id" => $configid,
+                            "service" => $request->service,
+                            "partner" => $request->partner,
+                            "alipay_seller_id" => $request->alipay_seller_id,
+                            "partner_trans_id" => $request->partner_trans_id,
+                            "currency" => $request->currency,
+                            "trans_amount" => $request->trans_amount,
+                            "trans_name" => $request->trans_name,
+                            "buyer_identity_code" => $request->buyer_identity_code,
+                            "identity_code_type" => $request->identity_code_type,
+                            "memo" => $request->memo,
+                            "secondary_merchant_industry" => $request->secondary_merchant_industry,
+                            "biz_product" => $request->biz_product,
+                            "trans_create_time" => $transcreatetime,
+                            "sign" => $xmlsign,
+                            "sign_type" => $xmlsigntype,
+                            "is_success" => $xmlsuccess,
+                            "result_code" => $responseData['result_code'],
+                            "error" => '',
+                            "alipay_buyer_login_id" => $responseData['alipay_buyer_login_id'],
+                            "alipay_buyer_user_id" => $responseData['alipay_buyer_user_id'],
+                            "alipay_trans_id" => $responseData['alipay_trans_id'],
+                            "alipay_pay_time" => $responseData['alipay_pay_time'],
+                            "exchange_rate" => $responseData['exchange_rate'],
+                            "trans_amount_cny" => $responseData['trans_amount_cny']
+                        ]
+                      ]
+                    );
 
-            // production
-            // $req = new GuzzleRequest('GET','https://intlmapi.alipay.com/gateway.do?'.$urlreq,[
-            //   'headers' => ['Accept' => 'application/xml', 'Content-Type' => 'text/xml']
-            // ]);
-            // $aliResponse = simplexml_load_file('https://intlmapi.alipay.com/gateway.do?'.$urlreq);
-
-            $promise2 = $client->post('http://localhost/laravel/public/api/response',
-              [
-                'timeout' => '5',
-                'headers' => [
-                  'Content-Type' => 'application/json',
-                  'Accept' => 'application/json',
-                ],
-                'json' => [
-                    "_input_charset" => $request->_input_charset,
-                    "config_id" => $configid,
-                    "service" => $request->service,
-                    "partner" => $request->partner,
-                    "alipay_seller_id" => $request->alipay_seller_id,
-                    "partner_trans_id" => $request->partner_trans_id,
-                    "currency" => $request->currency,
-                    "trans_amount" => $request->trans_amount,
-                    "trans_name" => $request->trans_name,
-                    "buyer_identity_code" => $request->buyer_identity_code,
-                    "identity_code_type" => $request->identity_code_type,
-                    "memo" => $request->memo,
-                    "secondary_merchant_industry" => $request->secondary_merchant_industry,
-                    "biz_product" => $request->biz_product,
-                    "trans_create_time" => $transcreatetime,
-                    "sign" => $xmlsign,
-                    "sign_type" => $xmlsigntype,
-                    "is_success" => $xmlsuccess,
-                    "result_code" => $responseData['result_code'],
-                    "error" => '',
-                    "alipay_buyer_login_id" => $responseData['alipay_buyer_login_id'],
-                    "alipay_buyer_user_id" => $responseData['alipay_buyer_user_id'],
-                    "alipay_trans_id" => $responseData['alipay_trans_id'],
-                    "alipay_pay_time" => $responseData['alipay_pay_time'],
-                    "exchange_rate" => $responseData['exchange_rate'],
-                    "trans_amount_cny" => $responseData['trans_amount_cny']
-                ]
-              ]
-            );
-              echo $promise2->getBody()->getContents();
+                } else {
+                    $service = 'alipay.acquire.overseas.query';
+                    $sendQuery = $client->postAsync('http://localhost/laravel/public/api/query',[
+                        'timeout' => '5',
+                        'headers' => [
+                          'Content-Type' => 'application/json',
+                          'Accept' => 'application/json',
+                        ],
+                        'json' => [
+                          "_input_charset" => $request->_input_charset,
+                          "service" => $service,
+                          "partner" => $request->partner,
+                          "partner_trans_id" => $request->partner_trans_id
+                        ]
+                    ])->then(function($response){
+                      echo $response->getBody()->getContents();
+                    });
+                    $sendQuery->wait();
+                }
 
             });
+            $promise1->wait();
+            echo $response->getBody()->getContents();
+          });
 
-        $promise->wait();
+          $promise->wait();
 
     }
+
 }
