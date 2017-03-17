@@ -66,7 +66,6 @@ class SenderController extends Controller
             // save data request
             if($response->getStatusCode() == 200)
             {
-                  echo $response->getBody()->getContents();
 
                   $xml = simplexml_load_file('https://openapi.alipaydev.com/gateway.do?'.$urlreq);
                   $json = json_encode($xml);
@@ -150,13 +149,10 @@ class SenderController extends Controller
                       }
 
                     });
-
                     $promise->wait();
-
+                    echo $response->getBody()->getContents();
                   } else {
-                    echo $responseData['result_code'];
-                    echo "<br>";
-                    echo $array['response']['alipay']['error'];
+                    echo $response->getBody()->getContents();
                   }
 
               } else {
