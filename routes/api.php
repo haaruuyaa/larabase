@@ -13,11 +13,19 @@ use Illuminate\Http\Request;
 |
 */
 
-// Route::get('/user', function (Request $request) {
-//     return $request->user();
-// })->middleware('auth:api');
+
+Route::post('request','RequestController@sendRequest');
+Route::post('response','RequestController@saveResponse');
+Route::post('query','RequestController@sendQuery');
+Route::post('send','SenderController@sendPay');
+Route::post('refund','RequestController@sendRefund');
+Route::post('cancel','RequestController@sendCancel');
+Route::post('reverse','RequestController@sendReverse');
+Route::post('notify','TestController@notifyUrl');
 
 Route::get('request','RequestController@request');
-Route::post('request','RequestController@saveData');
-Route::post('send','SenderController@sendPay');
-Route::post('response','RequestController@saveResponse');
+// Route::get('test','TestController@test');
+// Route::get('concur','TestController@concurrent');
+// Route::get('pool','TestController@pool');
+// Route::get('test1','TestController@test1');
+// Route::get('middle','TestController@testMiddle');
