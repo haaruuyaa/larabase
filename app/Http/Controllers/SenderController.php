@@ -61,12 +61,14 @@ class SenderController extends Controller
           'timeout' => '5',
           'headers' => ['Accept' => 'application/xml', 'Content-Type' => 'text/xml']
         ]);
-        $promise1 = $client->sendAsync($req)->then(function($response) use ($request,$client,$configid,$transcreatetime,$sign,$signtype){
+        $promise1 = $client->sendAsync($req)->then(function($response) use ($request,$client,$configid,$transcreatetime,$sign,$signtype,$urlreq){
           // echo $response->getBody()->getContents();
             // save data request
             if($response->getStatusCode() == 200)
             {
-                  $xml = simplexml_load_string($response->getBody()->getContents());
+                  echo $response->getBody()->getContents();
+
+                  $xml = simplexml_load_file('https://openapi.alipaydev.com/gateway.do?'.$urlreq);
                   $json = json_encode($xml);
                   $array = json_decode($json,TRUE);
 
@@ -102,7 +104,7 @@ class SenderController extends Controller
                         ]
                     ])->then(function($response) use ($request,$configid,$client,$transcreatetime,$array,$responseData){
 
-                      if($response->getStatusCode() == 201)
+                      if($response->getStatusCode() == 200)
                       {
                         $promise2 = $client->post('http://dev17.revpay.com.my:8000/api/response',
                           [
@@ -142,7 +144,7 @@ class SenderController extends Controller
                           ]
                         );
 
-                        echo $promise2->getBody()->getContents();
+                        // echo $response->getBody()->getContents();
                       } else {
                         echo 'Failed to save the request';
                       }
