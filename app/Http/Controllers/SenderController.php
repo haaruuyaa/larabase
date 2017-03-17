@@ -75,7 +75,7 @@ class SenderController extends Controller
 
                   if($responseData['result_code'] == 'SUCCESS')
                   {
-                    $promise = $client->postAsync('http://localhost/laravel/public/api/request',[
+                    $promise = $client->postAsync('http://dev17.revpay.com.my:8000/api/request',[
                         'timeout' => '5',
                         'headers' => [
                           'Content-Type' => 'application/json',
@@ -104,7 +104,7 @@ class SenderController extends Controller
 
                       if($response->getStatusCode() == 201)
                       {
-                        $promise2 = $client->post('http://localhost/laravel/public/api/response',
+                        $promise2 = $client->post('http://dev17.revpay.com.my/api/response',
                           [
                             'timeout' => '5',
                             'headers' => [
