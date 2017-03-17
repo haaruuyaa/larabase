@@ -69,7 +69,6 @@ class RequestController extends Controller
 
     public function saveResponse(Request $request, Payment $payment)
     {
-
           $this->validate($request,[
             'config_id' => 'required',
             'service' => 'required',
@@ -85,10 +84,14 @@ class RequestController extends Controller
             'identity_code_type' => 'required',
             'trans_create_time' => 'required',
             'biz_product' => 'required',
-            'alipay_buyer_user_id' => 'required',
+            'is_success' => 'required',
+            'result_code' => 'required',
             'alipay_buyer_login_id' => 'required',
+            'alipay_buyer_user_id' => 'required',
             'alipay_trans_id' => 'required',
-            'alipay_pay_time' => 'required'
+            'alipay_pay_time' => 'required',
+            'exchange_rate' => 'required',
+            'trans_amount_cny' => 'required'
           ]);
 
           $payment->create([
@@ -107,7 +110,7 @@ class RequestController extends Controller
             'ASP_TransAmt' => $request->trans_amount,
             'ASP_BuyerIdentityCode' => $request->buyer_identity_code ,
             'ASP_IdentityCodeType' => $request->identity_code_type,
-            'ASP_TransCreateTime' => date('Ymdhis'),
+            'ASP_TransCreateTime' => $request->trans_create_time,
             'ASP_Memo' => $request->memo,
             'ASP_BizProduct' => $request->biz_product,
             'ASP_IsSuccess' => $request->is_success,
@@ -116,7 +119,7 @@ class RequestController extends Controller
             'ASP_AlipayBuyerLoginID' => $request->alipay_buyer_login_id,
             'ASP_AlipayBuyerUserID' => $request->alipay_buyer_user_id,
             'ASP_AlipayTransID' => $request->alipay_trans_id,
-            'ASP_PayTime' => $request->alipay_pay_time,
+            'ASP_AlipayPayTime' => $request->alipay_pay_time,
             'ASP_ExchangeRate' => $request->exchange_rate,
             'ASP_TransAmtCny' => $request->trans_amount_cny
           ]);
