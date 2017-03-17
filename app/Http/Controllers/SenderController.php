@@ -154,7 +154,7 @@ class SenderController extends Controller
                     $promise->wait();
 
                   } else {
-                    echo $resultcode;
+                    echo $responseData['result_code'];
                     echo "<br>";
                     echo $array['response']['alipay']['error'];
                   }
