@@ -126,7 +126,7 @@ class RequestController extends Controller
             'ASP_TransAmtCny' => $request->trans_amount_cny
           ]);
 
-          return response()->json('completed',201);
+          return response()->json('Request has been successful',201);
     }
 
     public function sendQuery(Request $request)
