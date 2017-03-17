@@ -66,7 +66,7 @@ class RequestController extends Controller
             'ASP_BizProduct' => $request->biz_product
           ]);
 
-          return response()->json('completed',201);
+          // return response()->json('',201);
     }
 
     public function saveResponse(Request $request, Payment $payment)
@@ -126,7 +126,7 @@ class RequestController extends Controller
             'ASP_TransAmtCny' => $request->trans_amount_cny
           ]);
 
-          return response()->json('Request has been successful',201);
+          // return response()->json('',201);
     }
 
     public function sendQuery(Request $request)
