@@ -27,7 +27,7 @@ class Payment extends Model
       'ASP_TrxType',
       'ASP_BizProduct',
       'ASP_BuyerIdentityCode',
-      'ASP_BuyerLoginID',
+      'ASP_AlipayBuyerLoginID',
       'ASP_IdentityCodeType',
       'ASP_Memo',
       'ASP_AlipayPayTime',
@@ -36,7 +36,8 @@ class Payment extends Model
       'ASP_TransName',
       'ASP_ConfigID',
       'ASP_AlipaySellerID',
-      'ASP_MCCID'
+      'ASP_MCCID',
+      'ASP_AlipayBuyerUserID'
     ];
     public $timestamps = false;
     protected $table = 'tblAlibaba_ASP_Payment';
