@@ -55,7 +55,7 @@ class SenderController extends Controller
         array_push($arrValues, 'sign='.$sign, 'sign_type='.$signtype);
 
         $client = new Client();
-        $promise = $client->postAsync('http://localhost/laravel/public/api/request',[
+        $promise = $client->postAsync('http://dev17.revpay.com.my:8000/api/request',[
             'timeout' => '5',
             'headers' => [
               'Content-Type' => 'application/json',
@@ -102,7 +102,7 @@ class SenderController extends Controller
                     $resultcode = $responseData['result_code'];
                     $xmlsuccess = $array['is_success'];
 
-                    $promise2 = $client->post('http://localhost/laravel/public/api/response',
+                    $promise2 = $client->post('http://dev17.revpay.com.my:8000/api/response',
                       [
                         'timeout' => '5',
                         'headers' => [
@@ -142,7 +142,7 @@ class SenderController extends Controller
 
                 } else {
                     $service = 'alipay.acquire.overseas.query';
-                    $sendQuery = $client->postAsync('http://localhost/laravel/public/api/query',[
+                    $sendQuery = $client->postAsync('http://dev17.revpay.com.my:8000/api/query',[
                         'timeout' => '5',
                         'headers' => [
                           'Content-Type' => 'application/json',
