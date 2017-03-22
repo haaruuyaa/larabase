@@ -38,7 +38,7 @@ class RequestController extends Controller
             'trans_name' => 'required',
             'partner_trans_id' => 'required' ,
             'currency' => 'required',
-            'trans_amount' => 'required',
+            'trans_amount' => 'required|numeric',
             'buyer_identity_code' => 'required' ,
             'identity_code_type' => 'required',
             'trans_create_time' => 'required',
